@@ -5,7 +5,11 @@ import "fmt"
 // The main array
 
 func average(arr []float64) float64 {
-	panic("Not done")
+	total := 0.0
+	for _, v := range arr {
+		total += v
+	}
+	return total / float64(len(arr))
 }
 
 func main() {
@@ -18,11 +22,6 @@ func main() {
 		a[i] = float64(i)
 	}
 
-	// total := 0.0
-	// for _, v := range a {
-	// 	total += v
-	// }
-	// avg := total / float64(len(a))
 	avg := average(a[:])
 
 	fmt.Println(a)
