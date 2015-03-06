@@ -15,15 +15,13 @@ func average(arr []float64) float64 {
 func main() {
 	fmt.Printf("Run Test\n")
 
-	const n = 10
+	const n = 100
 	var a [n]float64
 
 	for i, _ := range a {
 		a[i] = float64(i)
 	}
 
-	avg := average(a[:])
-
 	fmt.Println(a)
-	fmt.Println("Average: ", avg)
+	fmt.Println("Average: ", average(a[:]))
 }
