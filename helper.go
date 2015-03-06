@@ -26,6 +26,7 @@ func max(arr []float64) float64 {
 	return curr_max
 }
 
+// Iterates one step of diffusion for the grid
 func step(arr_in []float64, arr_out []float64) {
 	for i := range arr_in {
 		switch i {

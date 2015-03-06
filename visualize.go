@@ -24,11 +24,13 @@ func initPNG(rows int, cols int) *image.RGBA {
 	return m
 }
 
-func updatePNG(m *image.RGBA, row int, arr []float64) {
+func updatePNG(m *image.RGBA, row int, arr []float64, maxInitVal float64) {
 	a_max := max(arr[:])
+	// a_max := maxInitVal
 	for i := range arr {
-		val := uint8(arr[i] / a_max * 255)
-		m.Set(row, i, color.RGBA{val, val, val, 255})
+		val := uint8((arr[i] / a_max) * 255)
+		diffuse_val := uint8((arr[i] / maxInitVal) * 255)
+		m.Set(row, i, color.RGBA{val, val, diffuse_val, 255})
 	}
 }
 
