@@ -36,7 +36,7 @@ func step(arr_in []float64, arr_out []float64) {
 func main() {
 	fmt.Printf("Run Test\n")
 
-	const n = 10
+	const n = 11
 	var (
 		grid     [n]float64
 		grid_tmp [n]float64
@@ -44,10 +44,10 @@ func main() {
 
 	grid[n/2] = 10
 
-	for i := 0; i < 100; i++ {
+	for i := 0; i < 10; i++ {
 		step(grid[:], grid_tmp[:])
 		grid, grid_tmp = grid_tmp, grid // Swap
-		fmt.Println(grid)
+		fmt.Printf("%.2f\n", grid)
 	}
 
 	// fmt.Println(grid_tmp)
