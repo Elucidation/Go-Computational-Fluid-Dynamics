@@ -7,8 +7,9 @@ import (
 func main() {
 	fmt.Printf("Run Test\n")
 
-	const n = 11
-	const steps = 10
+	const n = 100
+	const steps = 200
+
 	var (
 		// The main array
 		grid [n]float64
@@ -26,8 +27,9 @@ func main() {
 	for i := 0; i < steps; i++ {
 		step(grid[:], grid_tmp[:])
 		grid, grid_tmp = grid_tmp, grid // Swap
-		fmt.Printf("%.2f\n", grid)
-		updatePNG(m, i, grid[:])
+
+		// fmt.Printf("%.2f\n", grid)
+		updatePNG(m, i+1, grid[:])
 	}
 
 	// fmt.Println(grid_tmp)
