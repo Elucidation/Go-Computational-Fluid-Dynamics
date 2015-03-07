@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"log"
+	"os/exec"
 )
 
 func main() {
@@ -39,5 +41,29 @@ func main() {
 	// fmt.Println(grid_tmp)
 	fmt.Println("Sum: ", sum(grid[:]), ", Average: ", average(grid[:]))
 
-	writePNG(m, fmt.Sprintf("1d_simN%dx%dS.png", n, steps))
+	filename := fmt.Sprintf("1d_simN%dx%dS.png", n, steps)
+	writePNG(m, filename)
+	ShowUbuntu(filename)
+}
+
+// show  a specified file by Preview.app for OS X(darwin)
+func ShowUbuntu(name string) {
+	command := "eog"
+	cmd := exec.Command(command, name)
+	err := cmd.Run()
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+// show  a specified file by Preview.app for OS X(darwin)
+func ShowMac(name string) {
+	command := "open"
+	arg1 := "-a"
+	arg2 := "/Applications/Preview.app"
+	cmd := exec.Command(command, arg1, arg2, name)
+	err := cmd.Run()
+	if err != nil {
+		log.Fatal(err)
+	}
 }
