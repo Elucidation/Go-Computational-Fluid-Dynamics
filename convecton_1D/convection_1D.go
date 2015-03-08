@@ -13,13 +13,13 @@ type Sim_constants struct {
 func main() {
 	fmt.Printf("Run Test\n")
 
-	const n = 1001
-	const Width = 2    // meters
-	const T_final = 10 // seconds
-	const steps = 1000
+	const n = 41
+	const Width = 2 // meters
+	// const T_final = 10 // seconds
+	const steps = 20
 
 	sc := Sim_constants{
-		dt: float64(0.0025),
+		dt: float64(0.025),
 		dx: float64(Width) / (n - 1),
 		c:  float64(0.1),
 	}
@@ -55,6 +55,7 @@ func main() {
 
 		// fmt.Printf("%.1f\n", grid)
 		updatePNG(m, i+1, grid[:], maxInitVal)
+		fmt.Println("Sum: ", sum(grid[:]), ", Average: ", average(grid[:]))
 	}
 
 	// fmt.Println(grid_tmp)
@@ -71,9 +72,9 @@ func step(arr_in []float64, arr_out []float64, sc Sim_constants) {
 	for i := range arr_in {
 		switch i {
 		case 0: // Near edge
-			arr_out[i] = arr_in[i]
+			arr_out[i] = arr_in[i] // - arr_in[i]*sc.dt/sc.dx*(arr_in[i])
 		default:
-			arr_out[i] = arr_in[i] - sc.c*sc.dt/sc.dx*(arr_in[i]-arr_in[i-1])
+			arr_out[i] = arr_in[i] - arr_in[i]*sc.dt/sc.dx*(arr_in[i]-arr_in[i-1])
 		}
 	}
 }
