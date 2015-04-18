@@ -7,30 +7,30 @@ import (
 )
 
 type Sim_constants struct {
-	dt, dx, c float64
+	n, width, steps int
+	dt, dx, c       float64
 }
 
 func main() {
 	fmt.Printf("Run Test\n")
 
-	const n = 41
-	const Width = 2 // meters
-	// const T_final = 10 // seconds
-	const steps = 20
-
 	sc := Sim_constants{
-		dt: float64(0.025),
-		dx: float64(Width) / (n - 1),
-		c:  float64(0.1),
+		n:     1000, // Number of cells
+		width: 2,    // meters of all cells
+		// const T_final = 10 // seconds
+		steps: 2000,             // Number of steps
+		dt:    float64(0.00025), // Time step
+		// dx:    float64(width) / (n - 1),
+		c: float64(0.1),
 	}
+	sc.dx = float64(sc.width) / float64(sc.n-1)
+
 	fmt.Println(sc)
 
-	var (
-		// The main array
-		grid [n]float64
-		// Temp array used by step for update
-		grid_tmp [n]float64
-	)
+	// The main array
+	grid := make([]float64, sc.n)
+	// Temp array used by step for update
+	grid_tmp := make([]float64, sc.n)
 
 	// Seed grid
 
@@ -46,10 +46,10 @@ func main() {
 	maxInitVal := max(grid[:])
 
 	// Draw each 1D grid as a row in a PNG image
-	m := initPNG(steps, n)
+	m := initPNG(sc.steps, sc.n)
 	updatePNG(m, 0, grid[:], maxInitVal)
 
-	for i := 0; i < steps; i++ {
+	for i := 0; i < sc.steps; i++ {
 		step(grid[:], grid_tmp[:], sc)
 		grid, grid_tmp = grid_tmp, grid // Swap
 
@@ -61,10 +61,11 @@ func main() {
 	// fmt.Println(grid_tmp)
 	fmt.Println("Sum: ", sum(grid[:]), ", Average: ", average(grid[:]))
 
-	filename := fmt.Sprintf("1d_simN%dx%dS.png", n, steps)
+	filename := fmt.Sprintf("1d_simN%dx%dS.png", sc.n, sc.steps)
 	writePNG(m, filename)
 
-	ShowUbuntu(filename)
+	// ShowUbuntu(filename)
+	ShowMac(filename)
 }
 
 // Iterates one step of diffusion for the grid
