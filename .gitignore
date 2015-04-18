@@ -1,2 +1,6 @@
 *.exe
 Thumbs.db
+.DS_Store
+day2
+day1
+day3
