@@ -30,8 +30,8 @@ func main() {
 	sc.sigma = 1 / sc.maxintensity
 	sc.dt = sc.sigma * math.Pow(sc.dx, 2) / sc.nu
 	sc.steps = int(sc.totaltime / sc.dt)
-	if sc.steps > 4000 {
-		sc.steps = 4000
+	if sc.steps > 1000 {
+		sc.steps = 1000
 	}
 
 	fmt.Println("sigma = ", sc.sigma, ", dx = ", sc.dx, ", dt = ", sc.dt)
