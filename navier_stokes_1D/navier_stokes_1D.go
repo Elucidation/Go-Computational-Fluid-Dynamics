@@ -3,29 +3,39 @@ package main
 import (
 	"fmt"
 	"log"
+	"math"
 	"os/exec"
 )
 
 type Sim_constants struct {
-	n, steps                int
-	width, dt, dx, c, sigma float64
+	n, steps                    int
+	width, dt, dx, c, sigma     float64
+	totaltime, maxintensity, nu float64
 }
 
 func main() {
 	fmt.Printf("Run Test\n")
 
 	sc := Sim_constants{
-		n:     1000, // Number of cells
-		width: 0.5,  // meters of all cells
-		// const T_final = 10 // seconds
-		steps: 2000, // Number of steps
-		// dt:    float64(0.00025), // Time step
-		// dx:    float64(width) / (n - 1),
+		n:     400, // Number of cells
+		width: 1,   // meters of all cells
+		// steps: 1000, // Number of steps
+		totaltime: 0.1, // seconds
 		// c: float64(0.1),
-		sigma: 0.1, // used to determine timestep via courant number
+		nu:           0.2, // viscosity
+		maxintensity: 2,
+		// sigma:        0.1, // used to determine timestep via courant number
 	}
 	sc.dx = sc.width / float64(sc.n-1)
-	sc.dt = sc.sigma * sc.dx
+	sc.sigma = 1 / sc.maxintensity
+	sc.dt = sc.sigma * math.Pow(sc.dx, 2) / sc.nu
+	sc.steps = int(sc.totaltime / sc.dt)
+	if sc.steps > 4000 {
+		sc.steps = 4000
+	}
+
+	fmt.Println("sigma = ", sc.sigma, ", dx = ", sc.dx, ", dt = ", sc.dt)
+	fmt.Println("Total time = ", float64(sc.steps)*sc.dt, " seconds")
 
 	fmt.Println(sc)
 
@@ -40,10 +50,10 @@ func main() {
 	}
 	fmt.Println(int(.5*sc.width/sc.dx), int(1*sc.width/sc.dx+1))
 	for i := int(0.4 * float64(sc.n)); i < int(0.6*float64(sc.n)+1); i++ {
-		grid[i] = 3
+		grid[i] = sc.maxintensity
 	}
 	for i := int(0.7 * float64(sc.n)); i < int(0.72*float64(sc.n)+1); i++ {
-		grid[i] = 3
+		grid[i] = sc.maxintensity
 	}
 
 	maxInitVal := max(grid[:])
@@ -79,9 +89,12 @@ func step(arr_in []float64, arr_out []float64, sc Sim_constants) {
 		case len(arr_in) - 1: // Near edge
 			arr_out[i] = arr_in[i] // - arr_in[i]*sc.dt/sc.dx*(arr_in[i])
 		default:
+			// arr_out[i] = arr_in[i] - arr_in[i]*sc.dt/sc.dx*(arr_in[i]-arr_in[i-1])
 			// arr_out[i] = arr_in[i] - arr_in[i]*sc.dt/sc.dx*((arr_in[i]-arr_in[i-1])+(arr_in[i]-arr_in[i+1]))
-			arr_out[i] = arr_in[i] - arr_in[i]*sc.dt/(sc.dx)*(2*arr_in[i]-arr_in[i+1]-arr_in[i-1])
-			// arr_out[i] = arr_in[i] - arr_in[i]*sc.dt/(sc.dx*2)*(arr_in[i+1]-arr_in[i-1])
+			// arr_out[i] = arr_in[i] - arr_in[i]*sc.dt/(sc.dx)*(2*arr_in[i]-arr_in[i+1]-arr_in[i-1])
+			arr_out[i] = arr_in[i] +
+				sc.nu*sc.dt/(math.Pow(sc.dx, 2))*
+					(arr_in[i+1]-2*arr_in[i]+arr_in[i-1])
 		}
 	}
 }
