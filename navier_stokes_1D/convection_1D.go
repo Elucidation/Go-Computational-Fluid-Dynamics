@@ -7,8 +7,8 @@ import (
 )
 
 type Sim_constants struct {
-	n, width, steps int
-	dt, dx, c       float64
+	n, steps                int
+	width, dt, dx, c, sigma float64
 }
 
 func main() {
@@ -16,14 +16,16 @@ func main() {
 
 	sc := Sim_constants{
 		n:     1000, // Number of cells
-		width: 2,    // meters of all cells
+		width: 0.5,  // meters of all cells
 		// const T_final = 10 // seconds
-		steps: 2000,             // Number of steps
-		dt:    float64(0.00025), // Time step
+		steps: 2000, // Number of steps
+		// dt:    float64(0.00025), // Time step
 		// dx:    float64(width) / (n - 1),
-		c: float64(0.1),
+		// c: float64(0.1),
+		sigma: 0.1, // used to determine timestep via courant number
 	}
-	sc.dx = float64(sc.width) / float64(sc.n-1)
+	sc.dx = sc.width / float64(sc.n-1)
+	sc.dt = sc.sigma * sc.dx
 
 	fmt.Println(sc)
 
@@ -33,15 +35,16 @@ func main() {
 	grid_tmp := make([]float64, sc.n)
 
 	// Seed grid
-
 	for i := range grid {
 		grid[i] = 1
 	}
-	fmt.Println(int(.5/sc.dx), int(1/sc.dx+1))
-	for i := int(.5 / sc.dx); i < int(1/sc.dx+1); i++ {
-		grid[i] = 2
+	fmt.Println(int(.5*sc.width/sc.dx), int(1*sc.width/sc.dx+1))
+	for i := int(0.4 * float64(sc.n)); i < int(0.6*float64(sc.n)+1); i++ {
+		grid[i] = 3
 	}
-	// grid[int(1/sc.dx)] = 10
+	for i := int(0.7 * float64(sc.n)); i < int(0.72*float64(sc.n)+1); i++ {
+		grid[i] = 3
+	}
 
 	maxInitVal := max(grid[:])
 
@@ -73,9 +76,12 @@ func step(arr_in []float64, arr_out []float64, sc Sim_constants) {
 	for i := range arr_in {
 		switch i {
 		case 0: // Near edge
+		case len(arr_in) - 1: // Near edge
 			arr_out[i] = arr_in[i] // - arr_in[i]*sc.dt/sc.dx*(arr_in[i])
 		default:
-			arr_out[i] = arr_in[i] - arr_in[i]*sc.dt/sc.dx*(arr_in[i]-arr_in[i-1])
+			// arr_out[i] = arr_in[i] - arr_in[i]*sc.dt/sc.dx*((arr_in[i]-arr_in[i-1])+(arr_in[i]-arr_in[i+1]))
+			arr_out[i] = arr_in[i] - arr_in[i]*sc.dt/(sc.dx)*(2*arr_in[i]-arr_in[i+1]-arr_in[i-1])
+			// arr_out[i] = arr_in[i] - arr_in[i]*sc.dt/(sc.dx*2)*(arr_in[i+1]-arr_in[i-1])
 		}
 	}
 }
