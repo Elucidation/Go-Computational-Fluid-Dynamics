@@ -28,9 +28,18 @@ func updatePNG(m *image.RGBA, row int, arr []float64, maxInitVal float64) {
 	// a_max := max(arr[:])
 	a_max := maxInitVal
 	for i := range arr {
-		val := uint8((arr[i] / a_max) * 255)
+		if arr[i] > a_max {
+			// Red is too big
+			m.Set(row, i, color.RGBA{255, 0, 0, 255})
+		} else if arr[i] <= 0 {
+			// Green is zero
+			m.Set(row, i, color.RGBA{0, 255, 0, 255})
+		} else {
+			val := uint8((arr[i] / a_max) * 255)
+			m.Set(row, i, color.RGBA{val, val, val, 255})
+		}
 		// diffuse_val := uint8((arr[i] / maxInitVal) * 255)
-		m.Set(row, i, color.RGBA{val, val, val, 255})
+
 	}
 }
 

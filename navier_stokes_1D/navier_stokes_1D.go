@@ -17,8 +17,8 @@ func main() {
 	fmt.Printf("Run Test\n")
 
 	sc := Sim_constants{
-		n:     400, // Number of cells
-		width: 1,   // meters of all cells
+		n:     1000, // Number of cells
+		width: 1,    // meters of all cells
 		// steps: 1000, // Number of steps
 		totaltime: 0.1, // seconds
 		// c: float64(0.1),
@@ -30,8 +30,8 @@ func main() {
 	sc.sigma = 1 / sc.maxintensity
 	sc.dt = sc.sigma * math.Pow(sc.dx, 2) / sc.nu
 	sc.steps = int(sc.totaltime / sc.dt)
-	if sc.steps > 1000 {
-		sc.steps = 1000
+	if sc.steps > 2000 {
+		sc.steps = 2000
 	}
 
 	fmt.Println("sigma = ", sc.sigma, ", dx = ", sc.dx, ", dt = ", sc.dt)
@@ -44,17 +44,27 @@ func main() {
 	// Temp array used by step for update
 	grid_tmp := make([]float64, sc.n)
 
+	// grid := make([][]int, row)
+	// for i := range grid {
+	// 	grid[i] = make([]int, col)
+	// }
+	// grid_tmp := make([][]int, row)
+	// for i := range grid_tmp {
+	// 	grid_tmp[i] = make([]int, col)
+	// }
+
 	// Seed grid
 	for i := range grid {
 		grid[i] = 1
+		grid_tmp[i] = 1
 	}
 	fmt.Println(int(.5*sc.width/sc.dx), int(1*sc.width/sc.dx+1))
 	for i := int(0.4 * float64(sc.n)); i < int(0.6*float64(sc.n)+1); i++ {
 		grid[i] = sc.maxintensity
 	}
-	for i := int(0.7 * float64(sc.n)); i < int(0.72*float64(sc.n)+1); i++ {
-		grid[i] = sc.maxintensity
-	}
+	// for i := int(0.7 * float64(sc.n)); i < int(0.72*float64(sc.n)+1); i++ {
+	// 	grid[i] = sc.maxintensity
+	// }
 
 	maxInitVal := max(grid[:])
 
@@ -83,11 +93,21 @@ func main() {
 
 // Iterates one step of diffusion for the grid
 func step(arr_in []float64, arr_out []float64, sc Sim_constants) {
-	for i := 1; i < len(arr_in)-1; i++ {
+	arr_end := len(arr_in) - 1
+	for i := 1; i < arr_end; i++ {
 		arr_out[i] = arr_in[i] +
 			sc.nu*sc.dt/(math.Pow(sc.dx, 2))*
-				(arr_in[i+1]-2*arr_in[i]+arr_in[i-1])
+				(arr_in[i+1]-2*arr_in[i]+arr_in[i-1]) - arr_in[i]*sc.dt/sc.dx*(arr_in[i]-arr_in[i-1])
 	}
+
+	// Wrap around
+	arr_out[0] = arr_in[0] +
+		sc.nu*sc.dt/(math.Pow(sc.dx, 2))*
+			(arr_in[1]-2*arr_in[0]+arr_in[arr_end]) - arr_in[0]*sc.dt/sc.dx*(arr_in[0]-arr_in[arr_end])
+
+	arr_out[arr_end] = arr_in[arr_end] +
+		sc.nu*sc.dt/(math.Pow(sc.dx, 2))*
+			(arr_in[0]-2*arr_in[arr_end]+arr_in[arr_end-1]) - arr_in[arr_end]*sc.dt/sc.dx*(arr_in[arr_end]-arr_in[arr_end-1])
 }
 
 // show  a specified file by Preview.app for OS X(darwin)
