@@ -83,19 +83,10 @@ func main() {
 
 // Iterates one step of diffusion for the grid
 func step(arr_in []float64, arr_out []float64, sc Sim_constants) {
-	for i := range arr_in {
-		switch i {
-		case 0: // Near edge
-		case len(arr_in) - 1: // Near edge
-			arr_out[i] = arr_in[i] // - arr_in[i]*sc.dt/sc.dx*(arr_in[i])
-		default:
-			// arr_out[i] = arr_in[i] - arr_in[i]*sc.dt/sc.dx*(arr_in[i]-arr_in[i-1])
-			// arr_out[i] = arr_in[i] - arr_in[i]*sc.dt/sc.dx*((arr_in[i]-arr_in[i-1])+(arr_in[i]-arr_in[i+1]))
-			// arr_out[i] = arr_in[i] - arr_in[i]*sc.dt/(sc.dx)*(2*arr_in[i]-arr_in[i+1]-arr_in[i-1])
-			arr_out[i] = arr_in[i] +
-				sc.nu*sc.dt/(math.Pow(sc.dx, 2))*
-					(arr_in[i+1]-2*arr_in[i]+arr_in[i-1])
-		}
+	for i := 1; i < len(arr_in)-1; i++ {
+		arr_out[i] = arr_in[i] +
+			sc.nu*sc.dt/(math.Pow(sc.dx, 2))*
+				(arr_in[i+1]-2*arr_in[i]+arr_in[i-1])
 	}
 }
 
