@@ -57,18 +57,29 @@ func main() {
 	for i := range grid_tmp {
 		grid_tmp[i] = make([]float64, sc.ny)
 	}
+	gridv := make([][]float64, sc.nx)
+	for i := range grid {
+		gridv[i] = make([]float64, sc.ny)
+	}
+	gridv_tmp := make([][]float64, sc.nx)
+	for i := range grid_tmp {
+		gridv_tmp[i] = make([]float64, sc.ny)
+	}
 
 	// Seed grid
 	for i := range grid {
 		for j := range grid[i] {
 			grid[i][j] = 1
 			grid_tmp[i][j] = 1
+			gridv[i][j] = 1
+			gridv_tmp[i][j] = 1
 		}
 	}
 	fmt.Println(int(.5*sc.width/sc.dx), int(1*sc.width/sc.dx+1))
 	for i := int(0.4 * float64(sc.nx)); i < int(0.6*float64(sc.nx)+1); i++ {
 		for j := int(0.4 * float64(sc.ny)); j < int(0.6*float64(sc.ny)+1); j++ {
 			grid[i][j] = sc.maxintensity
+			gridv[i][j] = sc.maxintensity
 		}
 	}
 
@@ -83,8 +94,9 @@ func main() {
 	writePNG(m, filename)
 
 	for i := 0; i < sc.steps; i++ {
-		step(grid[:], grid_tmp[:], sc)
+		step(grid[:], grid_tmp[:], gridv[:], gridv_tmp[:], sc)
 		grid, grid_tmp = grid_tmp, grid // Swap
+		griv, gridv_tmp = gridv_tmp, gridv
 
 		// fmt.Printf("%.1f\n", grid)
 		updatePNG(m, grid[:], sc.maxintensity)
@@ -100,8 +112,19 @@ func main() {
 	ShowMac(filename)
 }
 
-// Iterates one step of diffusion for the grid
-func step(arr_in [][]float64, arr_out [][]float64, sc Sim_constants) {
+// Convection
+func stepConvection(arr_in [][]float64, arr_out [][]float64,
+	arrv_in [][]float64, arrv_out [][]float64, sc Sim_constants) {
+	for i := 1; i < sc.nx-1; i++ {
+		for j := 1; j < sc.ny-1; j++ {
+			arr_out[i][j] = arr_in[i][j] -
+				sc.c*sc.dt/sc.dx*(arr_in[i][j]-arr_in[i-1][j]) - sc.c*sc.dt/sc.dy*(arr_in[i][j]-arr_in[i][j-1])
+		}
+	}
+}
+
+// Linear Convection
+func stepLinearConvection(arr_in [][]float64, arr_out [][]float64, sc Sim_constants) {
 	for i := 1; i < sc.nx-1; i++ {
 		for j := 1; j < sc.ny-1; j++ {
 			// arr_out[i][j] = arr_in[i][j] +
