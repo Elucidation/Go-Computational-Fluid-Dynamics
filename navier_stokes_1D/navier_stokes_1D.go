@@ -19,12 +19,12 @@ func main() {
 	fmt.Printf("Run Test\n")
 
 	sc := Sim_constants{
-		nx:     100, // Number of cells
-		ny:     100, // Number of cells
+		nx:     400, // Number of cells
+		ny:     400, // Number of cells
 		width:  1,   // meters of all cells
 		height: 1,   // meters of all cells
 		// steps: 1000, // Number of steps
-		totaltime:    0.1, // seconds
+		totaltime:    10, // seconds
 		c:            1.0,
 		nu:           0.2, // viscosity
 		maxintensity: 2,
@@ -34,43 +34,35 @@ func main() {
 	sc.dy = sc.height / float64(sc.ny-1)
 	sc.sigma = 1 / sc.maxintensity
 	sc.dt = sc.sigma * math.Pow(sc.dx, 2) / sc.nu
-	sc.steps = int(sc.totaltime / sc.dt)
-	if sc.steps > 200 {
-		sc.steps = 200
-	}
+	// sc.steps = int(sc.totaltime / sc.dt)
+	sc.steps = 200
+	// if sc.steps > 2000 {
+	// 	sc.steps = 2000
+	// }
 
 	fmt.Println("sigma = ", sc.sigma, ", dx = ", sc.dx, ", dt = ", sc.dt)
 	fmt.Println("Total time = ", float64(sc.steps)*sc.dt, " seconds")
 
 	fmt.Println(sc)
 
-	// The main array
-	// grid := make([]float64, sc.n)
-	// Temp array used by step for update
-	// grid_tmp := make([]float64, sc.n)
-
-	grid := make([][]float64, sc.nx)
-	for i := range grid {
-		grid[i] = make([]float64, sc.ny)
-	}
-	grid_tmp := make([][]float64, sc.nx)
-	for i := range grid_tmp {
-		grid_tmp[i] = make([]float64, sc.ny)
-	}
+	// allocate arrays
+	gridu := make([][]float64, sc.nx)
+	gridu_tmp := make([][]float64, sc.nx)
 	gridv := make([][]float64, sc.nx)
-	for i := range grid {
-		gridv[i] = make([]float64, sc.ny)
-	}
 	gridv_tmp := make([][]float64, sc.nx)
-	for i := range grid_tmp {
+
+	for i := range gridu {
+		gridu[i] = make([]float64, sc.ny)
+		gridu_tmp[i] = make([]float64, sc.ny)
+		gridv[i] = make([]float64, sc.ny)
 		gridv_tmp[i] = make([]float64, sc.ny)
 	}
 
-	// Seed grid
-	for i := range grid {
-		for j := range grid[i] {
-			grid[i][j] = 1
-			grid_tmp[i][j] = 1
+	// Seed gridu
+	for i := range gridu {
+		for j := range gridu[i] {
+			gridu[i][j] = 1
+			gridu_tmp[i][j] = 1
 			gridv[i][j] = 1
 			gridv_tmp[i][j] = 1
 		}
@@ -78,41 +70,57 @@ func main() {
 	fmt.Println(int(.5*sc.width/sc.dx), int(1*sc.width/sc.dx+1))
 	for i := int(0.4 * float64(sc.nx)); i < int(0.6*float64(sc.nx)+1); i++ {
 		for j := int(0.4 * float64(sc.ny)); j < int(0.6*float64(sc.ny)+1); j++ {
-			grid[i][j] = sc.maxintensity
+			gridu[i][j] = sc.maxintensity
 			gridv[i][j] = sc.maxintensity
 		}
 	}
 
 	// for i := int(0.7 * float64(sc.n)); i < int(0.72*float64(sc.n)+1); i++ {
-	// 	grid[i] = sc.maxintensity
+	// 	gridu[i] = sc.maxintensity
 	// }
 
-	// Draw each 1D grid as a row in a PNG image
+	// Draw each 1D gridu as a row in a PNG image
 	m := initPNG(sc.ny, sc.nx)
-	updatePNG(m, grid[:], sc.maxintensity)
+	updatePNG(m, gridu[:], sc.maxintensity)
 	filename := fmt.Sprintf("%s/1d_sim%dx%d_%03dS.png", filedir, sc.nx, sc.ny, 0)
 	writePNG(m, filename)
 
 	for i := 0; i < sc.steps; i++ {
-		step(grid[:], grid_tmp[:], gridv[:], gridv_tmp[:], sc)
-		grid, grid_tmp = grid_tmp, grid // Swap
-		griv, gridv_tmp = gridv_tmp, gridv
+		step2DConvection(gridu[:], gridu_tmp[:], gridv[:], gridv_tmp[:], sc)
+		gridu, gridu_tmp = gridu_tmp, gridu // Swap
+		gridv, gridv_tmp = gridv_tmp, gridv
 
-		// fmt.Printf("%.1f\n", grid)
-		updatePNG(m, grid[:], sc.maxintensity)
-		fmt.Println("Sum: ", sum(grid[:]), ", Average: ", average(grid[:]))
+		// fmt.Printf("%.1f\n", gridu)
+		updatePNG(m, gridv[:], sc.maxintensity)
+		fmt.Println("Sum: ", sum(gridu[:]), ", Average: ", average(gridu[:]))
 		filename := fmt.Sprintf("%s/1d_sim%dx%d_%03dS.png", filedir, sc.nx, sc.ny, i+1)
 		writePNG(m, filename)
+		// ShowMac(filename)
 	}
 
-	// fmt.Println(grid_tmp)
-	fmt.Println("Sum: ", sum(grid[:]), ", Average: ", average(grid[:]))
+	// fmt.Println(gridu_tmp)
+	fmt.Println("u Sum: ", sum(gridu[:]), ", Average: ", average(gridu[:]))
+	fmt.Println("v Sum: ", sum(gridv[:]), ", Average: ", average(gridv[:]))
 
 	// ShowUbuntu(filename)
-	ShowMac(filename)
+	// ShowMac(filename)
 }
 
 // Convection
+func step2DConvection(arru_in [][]float64, arru_out [][]float64,
+	arrv_in [][]float64, arrv_out [][]float64, sc Sim_constants) {
+	for i := 1; i < sc.nx-1; i++ {
+		for j := 1; j < sc.ny-1; j++ {
+			arru_out[i][j] = arru_in[i][j] -
+				arru_in[i][j]*sc.dt/sc.dx*(arru_in[i][j]-arru_in[i-1][j]) -
+				arrv_in[i][j]*sc.dt/sc.dy*(arru_in[i][j]-arru_in[i][j-1])
+			arrv_out[i][j] = arrv_in[i][j] -
+				arru_in[i][j]*sc.dt/sc.dx*(arrv_in[i][j]-arrv_in[i-1][j]) -
+				arrv_in[i][j]*sc.dt/sc.dy*(arrv_in[i][j]-arrv_in[i][j-1])
+		}
+	}
+}
+
 func stepConvection(arr_in [][]float64, arr_out [][]float64,
 	arrv_in [][]float64, arrv_out [][]float64, sc Sim_constants) {
 	for i := 1; i < sc.nx-1; i++ {
