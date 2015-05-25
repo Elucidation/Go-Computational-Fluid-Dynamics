@@ -1,5 +1,6 @@
 # Go-Computational-Fluid-Dynamics
-Learning Go by trying to implement a basic computational fluid dynamics simulation
+Learning Go by trying to implement a basic computational fluid dynamics simulation.
+Following tutorial : http://nbviewer.ipython.org/github/barbagroup/CFDPython/tree/master/lessons/ 
 
 Now onto 2D convection, next step is to add in diffusion again
 
