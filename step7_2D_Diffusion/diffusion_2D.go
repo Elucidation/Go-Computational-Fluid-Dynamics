@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
-	"math"
+	// "math"
 	"os/exec"
 )
 
@@ -21,19 +21,20 @@ func main() {
 	sc := Sim_constants{
 		nx:     400, // Number of cells
 		ny:     400, // Number of cells
-		width:  1,   // meters of all cells
-		height: 1,   // meters of all cells
+		width:  2,   // meters of all cells
+		height: 2,   // meters of all cells
 		// steps: 1000, // Number of steps
 		totaltime:    10, // seconds
 		c:            1.0,
-		nu:           0.2, // viscosity
+		nu:           0.05, // viscosity
 		maxintensity: 2,
 		// sigma:        0.1, // used to determine timestep via courant number
 	}
 	sc.dx = sc.width / float64(sc.nx-1)
 	sc.dy = sc.height / float64(sc.ny-1)
-	sc.sigma = 1 / sc.maxintensity
-	sc.dt = sc.sigma * math.Pow(sc.dx, 2) / sc.nu
+	// sc.sigma = 1 / sc.maxintensity
+	sc.sigma = 0.25
+	sc.dt = sc.sigma * sc.dx * sc.dy / sc.nu
 	// sc.steps = int(sc.totaltime / sc.dt)
 	sc.steps = 200
 	// if sc.steps > 2000 {
@@ -86,12 +87,12 @@ func main() {
 	writePNG(m, filename)
 
 	for i := 0; i < sc.steps; i++ {
-		step2DConvection(gridu[:], gridu_tmp[:], gridv[:], gridv_tmp[:], sc)
+		step2DDiffusion(gridu[:], gridu_tmp[:], gridv[:], gridv_tmp[:], sc)
 		gridu, gridu_tmp = gridu_tmp, gridu // Swap
 		gridv, gridv_tmp = gridv_tmp, gridv
 
 		// fmt.Printf("%.1f\n", gridu)
-		updatePNG(m, gridv[:], sc.maxintensity)
+		updatePNG(m, gridu[:], sc.maxintensity)
 		fmt.Println("Sum: ", sum(gridu[:]), ", Average: ", average(gridu[:]))
 		filename := fmt.Sprintf("%s/1d_sim%dx%d_%03dS.png", filedir, sc.nx, sc.ny, i+1)
 		writePNG(m, filename)
@@ -104,6 +105,24 @@ func main() {
 
 	// ShowUbuntu(filename)
 	// ShowMac(filename)
+}
+
+// Diffusion
+func step2DDiffusion(arru_in [][]float64, arru_out [][]float64,
+	arrv_in [][]float64, arrv_out [][]float64, sc Sim_constants) {
+
+	for i := 1; i < sc.nx-1; i++ {
+		for j := 1; j < sc.ny-1; j++ {
+			arru_out[i][j] = arru_in[i][j] +
+				sc.nu*sc.dt/(sc.dx*sc.dx)*
+					(arru_in[i+1][j]-2*arru_in[i][j]+arru_in[i-1][j]) +
+				sc.nu*sc.dt/(sc.dy*sc.dy)*
+					(arru_in[i][j+1]-2*arru_in[i][j]+arru_in[i][j-1])
+			// arrv_out[i][j] = arrv_in[i][j] -
+			// 	arru_in[i][j]*sc.dt/sc.dx*(arrv_in[i][j]-arrv_in[i-1][j]) -
+			// 	arrv_in[i][j]*sc.dt/sc.dy*(arrv_in[i][j]-arrv_in[i][j-1])
+		}
+	}
 }
 
 // Convection

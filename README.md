@@ -3,6 +3,16 @@ Learning Go by trying to implement a basic computational fluid dynamics simulati
 
 Following tutorial : http://nbviewer.ipython.org/github/barbagroup/CFDPython/tree/master/lessons/ 
 
+## Current
+
+Step 7 - 2D Diffusion
+
+Go into folder step7_2D_Diffusion and call runTest.sh
+
+	cd step7_2D_Diffusion
+	chmod +x runTest.sh
+	./runTest.sh
+
 ![Example sim](1d_simN400x1000S.png)
 
 ## Previously

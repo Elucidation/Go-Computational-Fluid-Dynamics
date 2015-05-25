@@ -1,7 +1,6 @@
 *.exe
 Thumbs.db
 .DS_Store
-day2
-day1
-day3
 output/
+*.mp4
+step7_2D_Diffusion
